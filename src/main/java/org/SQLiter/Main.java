@@ -1,4 +1,4 @@
-package org.example;
+package org.SQLiter;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
