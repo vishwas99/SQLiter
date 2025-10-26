@@ -10,17 +10,10 @@ import java.util.Map;
 
 public class Main {
 
-
-
     static void main() {
         IO.println("Hello and welcome!");
         Header header = new Header();
         header.createDB("UwU");
     }
-
-
-
-
-
 
 }

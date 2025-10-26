@@ -12,6 +12,7 @@ public class Header {
 
     short pageSizeValue = Short.parseShort(Config.getProperty("pageSizeValue"));
     short fileFormatVersion = Short.parseShort(Config.getProperty("fileFormatVersion"));
+    Integer headerSize = Integer.parseInt(Config.getProperty("headerSize"));
 
     public void createDB(String dbName) {
 
