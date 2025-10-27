@@ -14,6 +14,8 @@ public class Main {
         IO.println("Hello and welcome!");
         Header header = new Header();
         header.createDB("UwU");
+        header.createTable("UwUTable", "Please work");
+        header.createTable("Another One", "DjKhalid");
     }
 
 }
