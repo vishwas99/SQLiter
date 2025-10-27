@@ -3,7 +3,7 @@ Building SQLite from Scratch - Java. Lots of Bytecode!
 
 First 4 Bytes in each page will tell how many bytes are occupied in that page
 
-### Header Bytecode Format
+## Header Bytecode Format
 
 | Offset | Hex Bytes                           | Description             |
 |--------|-------------------------------------|-------------------------|
@@ -17,7 +17,7 @@ First 4 Bytes in each page will tell how many bytes are occupied in that page
 
 Total Size - 40 Bytes
 
-### Handling Table Creation
+## Handling Table Creation
 
 When tables are created Bytecode array is create that contains
 
@@ -29,6 +29,6 @@ When tables are created Bytecode array is create that contains
 
 ## Handling Operation on .db file
 
-Generally SQLite handling this byte using a complicated Page cache mechanism which FOR NOW is
+Generally SQLite handles this by using a complicated Page cache mechanism which FOR NOW is
 out of scope. Instead we read db file in memory perform operation, Then Balance using B-Tree algorithm
 and then do a write back. Not efficient but easier. Once the db size becomes large cache needs to be implemented
