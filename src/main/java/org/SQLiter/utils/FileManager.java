@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 
 public class FileManager {
 
@@ -70,4 +71,15 @@ public class FileManager {
         return newBuffer;
     }
 
+
+    /**
+     * Create a copy of X bytes from given Byte Array
+     * @param byteArray
+     * @param noOfBytes
+     * @param startIdx
+     * @return
+     */
+    public static byte[] readXBytes(byte[] byteArray, int noOfBytes, int startIdx){
+        return Arrays.copyOfRange(byteArray, startIdx, startIdx+noOfBytes);
+    }
 }
