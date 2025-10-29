@@ -10,10 +10,12 @@ import java.nio.file.Paths;
 
 public class HeaderContent {
 
+    short pageSizeValue = Short.parseShort(Config.getProperty("pageSizeValue"));
+    short fileFormatVersion = Short.parseShort(Config.getProperty("fileFormatVersion"));
     Integer headerSize = Integer.parseInt(Config.getProperty("headerSize"));
-    Short pageSizeValue = Short.parseShort(Config.getProperty("pageSizeValue"));
-    int tableNumber = 1;
     Path dbFilePath = Paths.get("sqliter.db");
+    int bytesUsedSize = Integer.parseInt(Config.getProperty("bytesUsedSize"));
+    int tableNumber = 1; // Temp Variable
 
 
     public byte[] createTableForHeader(String tableName, String tableDetails) {
@@ -49,9 +51,9 @@ public class HeaderContent {
     public void parseAndGetAllTables(){
         ByteBuffer headerBuffer = getDbBuffer();
         IO.println(headerBuffer.capacity() + " " + headerBuffer.array().length);
-        int totalHeaderBytesUsed = ByteBuffer.wrap(FileManager.readXBytes(headerBuffer.array(), 4, 0)).getInt();
-//        Skip first 44 bytes in header -- Bytes Used + Header
-        int pos = 43; // Ignore 44 items
+        int totalHeaderBytesUsed = ByteBuffer.wrap(FileManager.readXBytes(headerBuffer.array(), bytesUsedSize, 0)).getShort();
+//        Skip first 42 bytes in header -- Bytes Used + Header
+        int pos = headerSize + bytesUsedSize - 1; // Ignore 42 items
         IO.println("Current Index : " + pos + " totalUsedBytes : " + totalHeaderBytesUsed);
         IO.println("_________________TABLES_____________");
         while(pos < totalHeaderBytesUsed-1){ // -1 since we read till x-1 index position for x elements

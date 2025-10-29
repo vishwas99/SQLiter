@@ -12,15 +12,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.SQLiter.config.Config;
+import org.SQLiter.pojo.Page;
 import org.SQLiter.utils.FileManager;
 
 public class Header {
 
     short pageSizeValue = Short.parseShort(Config.getProperty("pageSizeValue"));
     short fileFormatVersion = Short.parseShort(Config.getProperty("fileFormatVersion"));
-    Integer headerSize = Integer.parseInt(Config.getProperty("headerSize"));
+    short headerSize = Short.parseShort(Config.getProperty("headerSize"));
     HeaderContent headerContent = new HeaderContent();
     Path dbFilePath = Paths.get("sqliter.db");
+    short bytesUsedSize = Short.parseShort(Config.getProperty("bytesUsedSize"));
 
     /**
      *
@@ -47,8 +49,8 @@ public class Header {
 
         byte[] reservedPaddingBuffer = new byte[12]; // 40
 
-        ByteBuffer dbHeader = ByteBuffer.allocate(44);
-        dbHeader.put(ByteBuffer.allocate(4).putInt(44).array()); // Current 4 + 40 for header
+        ByteBuffer dbHeader = ByteBuffer.allocate(headerSize + bytesUsedSize);
+        dbHeader.put(ByteBuffer.allocate(bytesUsedSize).putShort((short) (headerSize + bytesUsedSize)).array()); // Current 2 + 40 for header
         dbHeader.put(dbHeaderBuffer);
         dbHeader.put(pageSizeBuffer);
         dbHeader.put(fileFormatVersionBuffer);
@@ -58,6 +60,9 @@ public class Header {
         dbHeader.put(reservedPaddingBuffer);
 
         IO.println(new String(dbHeader.array(), StandardCharsets.UTF_8));
+
+        Page headerPage = new Page(dbHeader.array(), true);
+        IO.println(headerPage.toString());
 
         Path path = Paths.get("sqliter.db");
 
@@ -74,7 +79,6 @@ public class Header {
             throw new RuntimeException(e);
         }
 
-
         parseHeader(dbHeader.array());
     }
 
@@ -87,14 +91,22 @@ public class Header {
     public Map<String, Object> parseHeader(byte[] db){
         IO.println("Header Length : " + db.length);
         Map<String, Object> headerMap = new HashMap<>();
-        headerMap.put("HEADER_BYTES_USED", ByteBuffer.wrap(FileManager.readXBytes(db, 4, 0)).getInt());
-        headerMap.put("SQL_NAME", new String(FileManager.readXBytes(db, 16, 4), StandardCharsets.UTF_8));
-        headerMap.put("PAGE_SIZE", ByteBuffer.wrap(FileManager.readXBytes(db, 2, 20)).getShort());
-        headerMap.put("FILE_FORMAT_VERSION", ByteBuffer.wrap(FileManager.readXBytes(db, 1, 22)).get());
-        headerMap.put("RESERVED_BUFFER", ByteBuffer.wrap(FileManager.readXBytes(db, 1, 23)).get());
-        headerMap.put("PAGE_NUMBER", ByteBuffer.wrap(FileManager.readXBytes(db, 4, 24)).getShort());
-        headerMap.put("TOTAL_PAGE_COUNT", ByteBuffer.wrap(FileManager.readXBytes(db, 4, 28)).getInt());
-        headerMap.put("RESERVED_PADDING_BUFFER", ByteBuffer.wrap(FileManager.readXBytes(db, 12, 32)).getShort());
+        int index = 0;
+        headerMap.put("HEADER_BYTES_USED", ByteBuffer.wrap(FileManager.readXBytes(db, bytesUsedSize, index)).getShort());
+        index += bytesUsedSize;
+        headerMap.put("SQL_NAME", new String(FileManager.readXBytes(db, 16, index), StandardCharsets.UTF_8));
+        index += 16;
+        headerMap.put("PAGE_SIZE", ByteBuffer.wrap(FileManager.readXBytes(db, 2, index)).getShort());
+        index += 2;
+        headerMap.put("FILE_FORMAT_VERSION", ByteBuffer.wrap(FileManager.readXBytes(db, 1, index)).get());
+        index += 1;
+        headerMap.put("RESERVED_BUFFER", ByteBuffer.wrap(FileManager.readXBytes(db, 1, index)).get());
+        index += 1;
+        headerMap.put("PAGE_NUMBER", ByteBuffer.wrap(FileManager.readXBytes(db, 4, index)).getShort());
+        index += 4;
+        headerMap.put("TOTAL_PAGE_COUNT", ByteBuffer.wrap(FileManager.readXBytes(db, 4, index)).getInt());
+        index += 4;
+        headerMap.put("RESERVED_PADDING_BUFFER", ByteBuffer.wrap(FileManager.readXBytes(db, 12, index)).getShort());
         IO.println(headerMap);
         return headerMap;
     }
@@ -117,7 +129,6 @@ public class Header {
      * Creates Table, Reads DB Bytecode, Adds Table details to the header, Saves back to bytecode
      * @param tableName
      * @param tableDetails
-     * @param headerBuffer
      */
     public void createTable(String tableName, String tableDetails){
         byte[] headerTableBuffer = headerContent.createTableForHeader(tableName, tableDetails);
@@ -126,7 +137,7 @@ public class Header {
         ByteBuffer dbFileBuffer = FileManager.readDBFile(dbFilePath);
         dbFileBuffer.position(0);
 
-        int headerBytesFilled = ByteBuffer.wrap(FileManager.readXBytes(dbFileBuffer.array(), 4, 0)).getInt();
+        int headerBytesFilled = ByteBuffer.wrap(FileManager.readXBytes(dbFileBuffer.array(), bytesUsedSize, 0)).getShort();
         IO.println("Header Bytes : " + headerBytesFilled + " Buffer Size : " + dbFileBuffer.capacity());
         dbFileBuffer.position( headerBytesFilled-1);
 
@@ -149,7 +160,7 @@ public class Header {
 
 
     /**
-     * For a given page update first 4 bytes representing bytes used. Needs to be called on each Write, Update
+     * For a given page update first 2 bytes representing bytes used. Needs to be called on each Write, Update
      * @param byteBuffer
      * @param pageNumber
      * @param pageSize
@@ -158,16 +169,16 @@ public class Header {
     public void updateBytesUsed(ByteBuffer byteBuffer, int pageNumber, int pageSize, int extraBytesUsed) {
 
         int position = pageNumber * pageSize;
-        int curPageLen = ByteBuffer.wrap(FileManager.readXBytes(byteBuffer.array(), 4, position)).getInt();
+        int curPageLen = ByteBuffer.wrap(FileManager.readXBytes(byteBuffer.array(), bytesUsedSize, position)).getShort();
         IO.println("Current Page Len : " + curPageLen);
 
         int newPageLen = curPageLen + extraBytesUsed;
 
         // Update the same buffer
-        updateByteBuffer(byteBuffer, position, ByteBuffer.allocate(4).putInt(newPageLen).array());
+        updateByteBuffer(byteBuffer, position, ByteBuffer.allocate(bytesUsedSize).putShort((short)newPageLen).array());
 
         // Read back updated value
-        int updated = ByteBuffer.wrap(FileManager.readXBytes(byteBuffer.array(), 4, position)).getInt();
+        int updated = ByteBuffer.wrap(FileManager.readXBytes(byteBuffer.array(), bytesUsedSize, position)).getShort();
         IO.println("Updated Len : " + updated);
     }
 

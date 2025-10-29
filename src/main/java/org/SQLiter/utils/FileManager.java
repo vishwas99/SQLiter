@@ -51,7 +51,7 @@ public class FileManager {
             throw new RuntimeException(e);
         }
 
-        IO.println("✅ Replaced file contents: " + path.toAbsolutePath());
+        IO.println("Replaced file contents: " + path.toAbsolutePath());
     }
 
     public static ByteBuffer expandBufferIfNeeded(ByteBuffer oldBuffer, int requiredExtraBytes) {
