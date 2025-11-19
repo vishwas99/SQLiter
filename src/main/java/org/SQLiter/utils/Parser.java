@@ -1,8 +1,7 @@
 package org.SQLiter.utils;
 
 import org.SQLiter.config.Config;
-import org.SQLiter.header.HeaderContent;
-import org.SQLiter.pojo.Page;
+import org.SQLiter.core.HeaderContent;
 
 import java.nio.ByteBuffer;
 import java.nio.file.Path;

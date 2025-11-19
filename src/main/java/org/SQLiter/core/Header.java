@@ -1,4 +1,4 @@
-package org.SQLiter.header;
+package org.SQLiter.core;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.SQLiter.config.Config;
-import org.SQLiter.pojo.Page;
+import org.SQLiter.pojo.PageChain;
 import org.SQLiter.utils.FileManager;
 
 public class Header {
@@ -23,7 +23,7 @@ public class Header {
     HeaderContent headerContent = new HeaderContent();
     Path dbFilePath = Paths.get("sqliter.db");
     short bytesUsedSize = Short.parseShort(Config.getProperty("bytesUsedSize"));
-
+    int nextPageNumberSize = Integer.parseInt(Config.getProperty("nextPageNumberSize"));
     /**
      *
      * @param dbName
@@ -50,7 +50,7 @@ public class Header {
         byte[] reservedPaddingBuffer = new byte[12]; // 40
 
         ByteBuffer dbHeader = ByteBuffer.allocate(headerSize + bytesUsedSize);
-        dbHeader.put(ByteBuffer.allocate(bytesUsedSize).putShort((short) (headerSize + bytesUsedSize)).array()); // Current 2 + 40 for header
+        dbHeader.put(ByteBuffer.allocate(bytesUsedSize).putShort(headerSize).array()); // Current 2 + 40 for header
         dbHeader.put(dbHeaderBuffer);
         dbHeader.put(pageSizeBuffer);
         dbHeader.put(fileFormatVersionBuffer);
@@ -60,9 +60,11 @@ public class Header {
         dbHeader.put(reservedPaddingBuffer);
 
         IO.println(new String(dbHeader.array(), StandardCharsets.UTF_8));
+        byte[] pagifiedDbHeader = DatabaseManager.pagify(dbHeader.array(), true);
+        IO.println(Arrays.toString(pagifiedDbHeader));
 
-        Page headerPage = new Page(dbHeader.array(), true);
-        IO.println(headerPage.toString());
+        PageChain pageChain = new PageChain(pagifiedDbHeader, true, pageSizeValue, bytesUsedSize, nextPageNumberSize);
+        IO.println("Header PageChain : " + pageChain.toString());
 
         Path path = Paths.get("sqliter.db");
 

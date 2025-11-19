@@ -1,4 +1,4 @@
-package org.SQLiter.header;
+package org.SQLiter.core;
 
 import org.SQLiter.config.Config;
 import org.SQLiter.utils.FileManager;

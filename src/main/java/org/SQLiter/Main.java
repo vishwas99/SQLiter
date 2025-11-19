@@ -1,13 +1,7 @@
 package org.SQLiter;
 
-import org.SQLiter.header.Header;
-import org.SQLiter.header.HeaderContent;
-
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import org.SQLiter.core.Header;
+import org.SQLiter.core.HeaderContent;
 
 public class Main {
 

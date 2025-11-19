@@ -13,21 +13,16 @@ public class Page {
     int pageNumber;
     byte[] byteArray = new byte[pageSize];
     int bytesUsed;
-    Page nextPage;
     int nextPageNumber = -1;
     boolean isHeader;
 
     public Page(byte[] byteArray, boolean isHeader){
-         this.pageNumber = SequenceManager.next("PageNumber");
-         this.byteArray = Arrays.copyOfRange(byteArray, 0, pageSize - nextPageNumberSize);
-         if(byteArray.length > pageSize){
-//             Create Next Page
-//             1. Add new no of Bytes Used
-//             2. Recursively try to fit content and create new Pages
-             this.nextPage = new Page(Arrays.copyOfRange(byteArray, pageSize - nextPageNumberSize, byteArray.length), isHeader);
-             this.nextPageNumber = SequenceManager.current("PageNumber");
-         }
+        IO.println("Creating Page with : " + Arrays.toString(byteArray));
+         this.pageNumber = SequenceManager.current("pageNumber");
          this.bytesUsed = Parser.getNumberOfUsedBytes(this.byteArray);
+         SequenceManager.next("pageNumber");
+         this.byteArray = byteArray;
+         this.isHeader = isHeader;
     }
 
     @Override
